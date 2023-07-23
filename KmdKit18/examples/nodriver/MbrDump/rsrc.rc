@@ -1,0 +1,23 @@
+#include "\masm32\Include\resource.h"
+
+#define IDD_MAIN	1000
+#define IDC_DUMP	1001
+#define IDI_ICON	2000
+
+/////////////////////////////////////////////////////////////////////////////
+// Main Dialog
+/////////////////////////////////////////////////////////////////////////////
+
+IDD_MAIN DIALOGEX DISCARDABLE 0, 0, 380, 300
+STYLE DS_3DLOOK | DS_CENTER | WS_CAPTION | WS_MINIMIZEBOX | WS_VISIBLE | WS_SYSMENU
+
+EXSTYLE WS_EX_WINDOWEDGE
+
+CAPTION "Master Boot Record Dumper"
+FONT 8, "MS Sans Serif"
+
+BEGIN
+    EDITTEXT IDC_DUMP, 0, 0, 0, 0, ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+END
+
+IDI_ICON ICON DISCARDABLE "icon.ico"

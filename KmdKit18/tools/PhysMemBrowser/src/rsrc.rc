@@ -1,0 +1,109 @@
+#include "\masm32\Include\resource.h"
+#include "manifest.h"
+
+#define IDD_MAIN	1000
+#define IDE_ADDRESS	1001
+#define IDCB_SIZE	1002
+#define IDB_DUMP	1003
+#define IDE_DUMP	1004
+#define IDB_CLEAR	1005
+
+
+#define IDR_BYTE	1006
+#define IDR_WORD	1007
+#define IDR_DWORD	1008
+
+#define IDC_TOTAL_PHYS_PAGES		1009
+#define IDC_LOWEST_PHYS_ADDRESS		1010
+#define IDC_HIGHEST_PHYS_ADDRESS	1011
+
+#define IDC_LINE					1020
+
+#define IDI_ICON					3000
+
+#define VERSION_INFO				1
+
+/////////////////////////////////////////////////////////////////////////////
+// Main Dialog
+/////////////////////////////////////////////////////////////////////////////
+
+IDD_MAIN DIALOGEX DISCARDABLE 0, 0, 380, 320
+STYLE DS_3DLOOK | DS_CENTER | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX | WS_VISIBLE | WS_SYSMENU
+
+EXSTYLE WS_EX_WINDOWEDGE
+
+CAPTION ""
+FONT 8, "MS Sans Serif"
+
+BEGIN
+
+    LTEXT "", IDC_TOTAL_PHYS_PAGES, 2, 2, 120, 10
+
+    LTEXT "", IDC_LOWEST_PHYS_ADDRESS, 130, 2, 100, 10
+    LTEXT "", IDC_HIGHEST_PHYS_ADDRESS, 245, 2, 100, 10
+
+//    LTEXT "", IDC_LOWEST_PHYS_ADDRESS, 2, 14, 95, 10
+//    LTEXT "", IDC_HIGHEST_PHYS_ADDRESS, 100, 14, 95, 10
+
+	CONTROL	"", IDC_LINE, "Static", SS_ETCHEDHORZ, 2, 14, 376, 2
+
+    LTEXT "Phys Addr (hex):", IDC_STATIC, 2, 22, 54, 10
+    EDITTEXT IDE_ADDRESS, 60, 20, 46, 13
+
+    LTEXT "Size (dec):", IDC_STATIC, 110, 22, 36, 10
+    COMBOBOX IDCB_SIZE, 146, 20, 40, 200, CBS_NOINTEGRALHEIGHT | CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+    DEFPUSHBUTTON "Dump", IDB_DUMP, 192, 20, 40, 13, WS_GROUP, WS_EX_STATICEDGE
+    PUSHBUTTON "X", IDB_CLEAR, 238, 20, 13, 13, WS_GROUP, WS_EX_STATICEDGE
+
+    GROUPBOX    "", IDC_STATIC, 258, 16, 100, 17
+    CONTROL "by", IDR_BYTE, "Button", BS_AUTORADIOBUTTON, 266, 22, 28, 10
+    CONTROL "wo", IDR_WORD, "Button", BS_AUTORADIOBUTTON, 296, 22, 28, 10
+    CONTROL "dw", IDR_DWORD, "Button", BS_AUTORADIOBUTTON, 326, 22, 28, 10
+
+    EDITTEXT IDE_DUMP, 0, 0, 0, 0, ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VERSION_INFO VERSIONINFO
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "Comments", "Let you browse physical memory\0"
+            VALUE "CompanyName", "Four-F\0"
+            VALUE "FileDescription", "Physical Memory Browser\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
+            VALUE "InternalName", "PhysMemBrowser\0"
+            VALUE "LegalCopyright", "Copyright © 2003-2005 Four-F\0"
+            VALUE "OriginalFilename", "PhysMemBrowser.exe\0"
+            VALUE "ProductName", "Physical Memory Browser\0"
+            VALUE "ProductVersion", "1.2\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+IDI_ICON ICON DISCARDABLE "icon.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+// Manifest
+/////////////////////////////////////////////////////////////////////////////
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST DISCARDABLE "manifest"

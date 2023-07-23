@@ -1,0 +1,263 @@
+
+
+$IsMem MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00000010y
+		;; Is a memory variable or has a relocatable data label
+		EXITM <-1>              ;; True
+	ELSE
+		EXITM <0>               ;; False
+	ENDIF
+ENDM
+
+$IsImm MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00000100y
+		;; Is an immediate value
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsDirMemAddr MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00001000y
+		;; Uses direct memory addressing
+        EXITM <-1>
+	ELSE
+        EXITM <0>
+	ENDIF
+ENDM
+
+$IsReg MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00010000y
+		;; Is a register value
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsNoError MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00100000y
+		;; References no undefined symbols and is without error
+        EXITM <-1>
+	ELSE
+        EXITM <0>
+	ENDIF
+ENDM
+
+$IsStack MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 01000000y
+		;; relative to SS
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsExtLabel MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 10000000y
+		;; References an external label
+        EXITM <-1>
+	ELSE
+        EXITM <0>
+	ENDIF
+ENDM
+
+$IsAddr MACRO Operand:REQ
+local a
+	a = 0
+
+	IF @SizeStr(<Operand>) GT 5		
+		IFIDNI <addr >, @SubStr(<Operand>, 1 , 5)
+			a = 1
+		ENDIF
+	ENDIF
+
+	IF a
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsByte MACRO Operand:REQ
+local r, f
+	f = 0
+	IF (TYPE Operand) EQ 1
+        EXITM <-1>
+	ELSE			; dunno why, but (TYPE al, bl..) doesn't work
+		FOR r, <al,ah,bl,bh,cl,ch,dl,dh,>
+			IFIDNI <Operand>, <r>
+				f = 1
+				EXITM
+			ENDIF
+		ENDM
+		IF f
+			EXITM <-1>
+		ELSE
+			EXITM <0>
+		ENDIF
+	ENDIF
+ENDM
+
+$IsWord MACRO Operand:REQ
+	IF (TYPE Operand) EQ 2
+        EXITM <-1>
+	ELSE
+        EXITM <0>
+	ENDIF
+ENDM
+
+$IsDword MACRO Operand:REQ
+	IF (TYPE Operand) EQ 4
+        EXITM <-1>
+	ELSE
+        EXITM <0>
+	ENDIF
+ENDM
+
+ECHONUM MACRO n:REQ
+	local tn
+	tn TEXTEQU %n
+	% ECHO tn
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+m2m MACRO Des:REQ, Sor:REQ, Reg
+
+	IFB <Reg>
+	    push Sor					;; Default size optimization
+		pop  Des
+	ELSE
+		IF $IsReg(Reg)
+			mov Reg, Sor
+			mov Des, Reg
+		ELSE
+			.ERR <m2m macro ERROR! Specify register value as third param.>
+		ENDIF
+	ENDIF
+        
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+mrm MACRO Des:REQ, Sor:REQ
+    mov eax, Sor
+	mov Des, eax
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;; Usage:          Assembles to:
+;; Return          -> ret
+;; Return ebx      -> mov eax, ebx / ret
+;; Return FALSE    -> xor eax, eax / ret
+;; Return TRUE     -> xor eax, eax / inc eax / ret
+;; Return -1       -> xor eax, eax / dec eax / ret
+;; Return Var      -> mov eax, [Var] / ret
+
+return MACRO rv, flag
+
+	IFNB <rv>
+		IF $IsReg(rv)				;; register
+			IFDIFI <rv>, <eax>		;; not eax
+				mov eax, rv
+			ENDIF
+		ELSEIF $IsImm(rv)			;; immediate value
+			IF rv EQ 0;;FALSE
+				xor eax, eax
+			ELSEIF rv EQ 1;;TRUE
+				xor eax, eax
+				inc eax
+			ELSEIF rv EQ -1
+				or eax, -1
+				;;xor eax, eax
+				;;dec eax
+			ELSE
+				mov eax, rv
+			ENDIF
+		ELSEIF $IsMem(rv)			;; memory varible
+			mov eax, rv
+		ELSE
+			.ERR <return macro ERROR! Cant recognize type of return value>
+		ENDIF
+	ENDIF
+    
+	ret
+    
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$invoke MACRO vars:VARARG
+     invoke vars
+     EXITM <eax>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;; Return macro result
+$RMR MACRO m:VARARG
+	m
+	EXITM <eax>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;; Retrieves low word from double word argument in eax
+
+_LOWORD MACRO dwVar:REQ
+	IFDIFI <dwVar>, <eax>	;; don't move eax onto itself
+		mov eax, dwVar
+	ENDIF
+	and eax, 0FFFFh
+ENDM
+
+$LOWORD MACRO dwVar:REQ
+	IF $IsImm(dwVar)
+		EXITM <dwVar AND 0FFFFh>
+	ELSE
+		EXITM $RMR(_LOWORD dwVar)
+	ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;; Retrieves hi word from double word argument in eax
+
+_HIWORD MACRO dwVar:REQ
+	IFDIFI <dwVar>, <eax>	;; don't move eax onto itself
+		mov eax, dwVar
+	ENDIF
+	shr eax, 16
+ENDM
+
+$HIWORD MACRO dwVar:REQ
+	IF $IsImm(dwVar)
+		EXITM <dwVar SHR 16>
+	ELSE
+		EXITM $RMR(_HIWORD dwVar)
+	ENDIF
+ENDM
+
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                       Fix helper macro                                            
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Fix MACRO txt:=<Fix this later!!!!>
+	local pos, spos
+
+	pos = 0
+	spos = 0
+
+	% FORC chr, @FileCur		;; Don't display full path. Easier to read.
+		pos = pos + 1
+		IF "&chr" EQ 5Ch		;; "/"
+			spos = pos
+		ENDIF
+	ENDM
+
+	% ECHO @CatStr(<Fix: >, @SubStr(%@FileCur, spos+1,), <(%@Line) - txt>)
+ENDM

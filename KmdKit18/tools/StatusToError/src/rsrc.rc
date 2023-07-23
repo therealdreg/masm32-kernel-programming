@@ -1,0 +1,80 @@
+#include "\masm32\Include\resource.h"
+#include "manifest.h"
+
+#define IDD_DIALOG		1000
+#define IDC_ERROR_DESCRIPTION	1001
+#define IDC_NT_STATUS		1002
+#define IDC_DOS_ERROR_ID	1003
+#define IDC_ALWAYS_ON_TOP	1004
+
+#define IDI_ICON		3000
+
+#define VERSION_INFO	1
+
+/////////////////////////////////////////////////////////////////////////////
+// Main Dialog
+/////////////////////////////////////////////////////////////////////////////
+
+IDD_DIALOG DIALOG DISCARDABLE	10, 10, 278, 94
+STYLE DS_MODALFRAME | DS_CENTER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE | WS_OVERLAPPED
+CAPTION "Nt Status To Win32 Error"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+    GROUPBOX        "", IDC_STATIC, 	2,0,274,76, 0
+
+    LTEXT           "Nt Status (hex):", IDC_STATIC, 	10,10,60,8, SS_LEFT
+    EDITTEXT        IDC_NT_STATUS, 	10,22,54,12, ES_AUTOHSCROLL | ES_LEFT
+
+    LTEXT           "Win32 Error (hex):", IDC_STATIC, 	10,42,60,8, SS_LEFT
+    EDITTEXT        IDC_DOS_ERROR_ID, 	10,54,54,12, ES_AUTOHSCROLL | ES_LEFT | ES_READONLY
+
+    LTEXT           "Win32 Error Description:", IDC_STATIC, 	74,10,80,8, SS_LEFT
+    EDITTEXT        IDC_ERROR_DESCRIPTION, 	74,22,194,45, ES_MULTILINE | ES_READONLY | ES_LEFT | WS_VSCROLL
+
+    CONTROL         "Always On Top", IDC_ALWAYS_ON_TOP, "Button", BS_LEFTTEXT | BS_AUTOCHECKBOX | WS_TABSTOP, 	213,80,62,12
+
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VERSION_INFO VERSIONINFO
+ FILEVERSION 1,3,0,0
+ PRODUCTVERSION 1,3,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "Comments", "Let you convert kernel-mode status code to the corresponding Win32 error code\0"
+            VALUE "CompanyName", "Four-F\0"
+            VALUE "FileDescription", "Nt Status To Win32 Error\0"
+            VALUE "FileVersion", "1, 3, 0, 0\0"
+            VALUE "InternalName", "StatusToError\0"
+            VALUE "LegalCopyright", "Copyright © 2003-2005 Four-F\0"
+            VALUE "OriginalFilename", "StatusToError.exe\0"
+            VALUE "ProductName", "Nt Status To Win32 Error\0"
+            VALUE "ProductVersion", "1.3\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+IDI_ICON ICON "icon.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+// Manifest
+/////////////////////////////////////////////////////////////////////////////
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST DISCARDABLE "manifest"

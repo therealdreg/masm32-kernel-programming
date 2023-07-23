@@ -1,0 +1,75 @@
+#include "\MASM32\mProgs\Include\resource.h"
+#include "manifest.h"
+
+//////////////////////////////////////////////
+// Main dialog const
+//////////////////////////////////////////////
+#define IDD_MAIN_DIALOG		100
+#define IDC_LISTVIEW		101
+#define IDI_MAIN_ICON		200
+
+#define IDI_UP_ARROW		2001
+#define IDI_DOWN_ARROW		2002
+
+#define VERSION_INFO		1
+
+//////////////////////////////////////////////
+// Main dialog 
+//////////////////////////////////////////////
+
+IDD_MAIN_DIALOG DIALOG MOVEABLE PURE LOADONCALL DISCARDABLE	0, 0, 400, 200
+STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX
+CAPTION "Symbolic Links Viewer"
+FONT 8, "MS Sans Serif"
+BEGIN
+	CONTROL	"", IDC_LISTVIEW, "SysListView32", WS_BORDER | LVS_SINGLESEL | LVS_REPORT, 0,0,400,200
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Version
+/////////////////////////////////////////////////////////////////////////////
+
+VERSION_INFO VERSIONINFO
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "Comments", "Let you obtain a list of all MS-DOS devices known to the system.\0"
+            VALUE "CompanyName", "Four-F\0"
+            VALUE "FileDescription", "Symbolic Links Viewer\0"
+            VALUE "FileVersion", "1, 2, 0, 0\0"
+            VALUE "InternalName", "SymLinks\0"
+            VALUE "LegalCopyright", "Copyright © 2003-2005 Four-F\0"
+            VALUE "OriginalFilename", "SymLinks.exe\0"
+            VALUE "ProductName", "Symbolic Links Viewer\0"
+            VALUE "ProductVersion", "1.2\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+//////////////////////////////////////////////
+// Main dialog resources
+//////////////////////////////////////////////
+
+IDI_MAIN_ICON	ICON	DISCARDABLE icon.ico
+
+IDI_UP_ARROW BITMAP up.bmp
+IDI_DOWN_ARROW BITMAP dn.bmp
+
+/////////////////////////////////////////////////////////////////////////////
+// Manifest
+/////////////////////////////////////////////////////////////////////////////
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST DISCARDABLE "manifest"

@@ -1,0 +1,51 @@
+               KmdKit v1.8
+       Copyright(C) 2002-2005 Four-F
+
+
+      What's new in the latest version
+      --------------------------------
+
+
+[!] Important
+[+] New
+[-] Removed
+[x] Fixed
+[*] Change/Update
+
+========================================================
+
+[*] \include\w2k\ntdef.inc
+[*] \include\w2k\ntddk.inc
+[*] \include\w2k\ntddmou.inc
+[*] \include\w2k\ntddcdrm.inc
+[*] \include\w2k\ntddstor.inc
+[*] \include\w2k\ipfirewall.inc
+[+] \include\w2k\guiddef.inc
+[+] \include\w2k\devguid.inc
+[*] \include\w2k\hal.inc
+[*] \include\w2k\ntdll.inc
+[*] \include\w2k\ntoskrnl.inc
+[*] \include\w2k\win32k.inc
+
+[*] \macros\Strings.mac
+
+[*] \tools\GdtDump v1.1
+[*] \tools\IdtDump v1.1
+[*] \tools\KmdManager v1.3
+[*] \tools\PhysMemBrowser v1.2
+[+] \tools\protogen v1.0
+[*] \tools\StatusToError v1.3
+[*] \tools\SymLinks v1.2
+[-] \tools\IoctlDecoder (standalone project)
+[-] \tools\ObjectExplorer (standalone project)
+
+[+] \examples\advanced\SecureDevices
+[+] \examples\advanced\KbdSpy
+[+] \examples\advanced\MouSpy
+[+] \examples\basic\IsSafeBootMode
+[+] \examples\basic\Sections
+[+] \examples\nodriver\DriveLayout
+[+] \examples\setup\EnumDisk
+
+[x] many small fixes (can't remember)
+

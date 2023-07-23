@@ -1,0 +1,82 @@
+
+IFNDEF $IsAddr
+$IsAddr MACRO Operand:REQ
+local a
+	a = 0
+
+	IF @SizeStr(<Operand>) GT 5		
+		IFIDNI <addr >, @SubStr(<Operand>, 1 , 5)
+			a = 1
+		ENDIF
+	ENDIF
+
+	IF a
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+ENDIF
+
+
+
+
+MUTEX_INIT MACRO mtx:REQ
+local a
+	IF $IsAddr(mtx)
+		a SUBSTR <mtx>, 6
+		IF (OPATTR (a)) AND 01000000y	;; Is relative to SS
+			lea eax, a
+			invoke KeInitializeMutex, eax, 0
+		ELSE
+			invoke KeInitializeMutex, offset a, 0
+		ENDIF
+	ELSEIF (OPATTR (mtx)) AND 00010000y	;; Is a register value
+		invoke KeInitializeMutex, mtx, 0
+	ELSEIF (OPATTR (mtx)) AND 00000010y
+		;; Is a memory variable or has a relocatable data label
+		invoke KeInitializeMutex, offset mtx, 0
+	ELSE
+		.ERR
+	ENDIF
+ENDM
+
+MUTEX_WAIT MACRO mtx:REQ
+local a
+	IF $IsAddr(mtx)
+		a SUBSTR <mtx>, 6
+		IF (OPATTR (a)) AND 01000000y	;; Is relative to SS
+			lea eax, a
+			invoke KeWaitForMutexObject, eax, Executive, KernelMode, FALSE, NULL
+		ELSE
+			invoke KeWaitForMutexObject, offset a, Executive, KernelMode, FALSE, NULL
+		ENDIF
+	ELSEIF (OPATTR (mtx)) AND 00010000y	;; Is a register value
+		invoke KeWaitForMutexObject, mtx, Executive, KernelMode, FALSE, NULL
+	ELSEIF (OPATTR (mtx)) AND 00000010y
+		;; Is a memory variable or has a relocatable data label
+		invoke KeWaitForMutexObject, offset mtx, Executive, KernelMode, FALSE, NULL
+	ELSE
+		.ERR
+	ENDIF
+ENDM
+
+MUTEX_RELEASE MACRO mtx:REQ
+local a
+	IF $IsAddr(mtx)
+		a SUBSTR <mtx>, 6
+		IF (OPATTR (a)) AND 01000000y	;; Is relative to SS
+			lea eax, a
+			invoke KeReleaseMutex, eax, FALSE
+		ELSE
+			invoke KeReleaseMutex, offset a, FALSE
+		ENDIF
+	ELSEIF (OPATTR (mtx)) AND 00010000y	;; Is a register value
+		invoke KeReleaseMutex, mtx, FALSE
+	ELSEIF (OPATTR (mtx)) AND 00000010y
+		;; Is a memory variable or has a relocatable data label
+		invoke KeReleaseMutex, offset mtx, FALSE
+	ELSE
+		.ERR
+	ENDIF
+ENDM

@@ -1,0 +1,6 @@
+
+#include <\masm32\include\resource.h>
+
+#define IDR_DRIVER_SYS		1000
+
+IDR_DRIVER_SYS sys DISCARDABLE "..\HiddenDriver.sys"

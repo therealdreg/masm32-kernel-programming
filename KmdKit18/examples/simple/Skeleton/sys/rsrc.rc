@@ -1,0 +1,39 @@
+
+#include <\masm32\include\resource.h>
+
+#define VS_VERSION_INFO	1
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "Comments", "Written by *Your Name*\0"
+            VALUE "CompanyName", "*Your Name* Software\0"
+            VALUE "FileDescription", "Kernel-Mode Driver Skeleton v1.00\0"
+            VALUE "FileVersion", "1, 0, 0, 0\0"
+            VALUE "InternalName", "Skeleton\0"
+            VALUE "LegalCopyright", "Copyright © 2003, *Your Name*\0"
+            VALUE "OriginalFilename", "skeleton.sys\0"
+            VALUE "ProductName", "Kernel-Mode Driver Skeleton\0"
+            VALUE "ProductVersion", "1, 0, 0, 0\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

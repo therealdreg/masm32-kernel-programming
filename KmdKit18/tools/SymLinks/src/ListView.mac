@@ -1,0 +1,1412 @@
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;
+;;                     List View Control Macros
+;;
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;
+;;      ListView.mac for 32 bit MASM v1.3 (April 2003)
+;;
+;;      This file contains the macros, equates and structures
+;;      to make it easier to send messages to List View control
+;;
+;;      This include file is written and maintained by Four-F (four-f@mail.ru)
+;;
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;;   NOTE : windows.inc and cocomac.mac MUST be included before
+;;   as ListView.mac require some difinitions from it.
+;;
+;;   If version of your windows.inc is prior to 1.25a ( 22 October 2001),
+;;   please remove the following line from windows.inc:
+;;   ListView_SetExtendedListViewStyle PROTO :DWORD, :DWORD
+
+IFNDEF UNICODE
+	UNICODE = 0
+ENDIF
+
+IFNDEF LPWSTR
+	LPWSTR TYPEDEF	PTR WORD				;; ???
+ENDIF
+
+IFNDEF LVS_OWNERDATA
+	LVS_OWNERDATA equ 1000h
+ENDIF
+
+IFNDEF LVS_EX_BORDERSELECT
+	LVS_EX_BORDERSELECT equ 8000h ;; border selection style instead of highlight
+ENDIF
+
+IFNDEF LVS_EX_DOUBLEBUFFER
+	LVS_EX_DOUBLEBUFFER equ 10000h
+ENDIF
+
+IFNDEF LVS_EX_HIDELABELS
+	LVS_EX_HIDELABELS equ 20000h
+ENDIF
+
+IFNDEF LVS_EX_SINGLEROW
+	LVS_EX_SINGLEROW equ 40000h
+ENDIF
+
+IFNDEF LVS_EX_SNAPTOGRID
+	LVS_EX_SNAPTOGRID equ 80000h ;; Icons automatically snap to grid.
+ENDIF
+
+IFNDEF LVS_EX_SIMPLESELECT
+	LVS_EX_SIMPLESELECT equ 100000h ;; Also changes overlay rendering to top right for icon mode.
+ENDIF
+
+IFNDEF LVIF_INDENT
+	LVIF_INDENT equ 10h
+ENDIF
+
+IFNDEF LVIF_NORECOMPUTE
+	LVIF_NORECOMPUTE equ 800h
+ENDIF
+
+IFNDEF LVIF_GROUPID
+	LVIF_GROUPID equ 100h
+ENDIF
+
+IFNDEF LVIF_COLUMNS
+	LVIF_COLUMNS equ 200h
+ENDIF
+
+IFNDEF LVIS_GLOW
+	LVIS_GLOW equ 10h
+ENDIF
+
+IFNDEF LVIS_ACTIVATING
+	LVIS_ACTIVATING equ 20h
+ENDIF
+
+IFNDEF LV_VIEW_ICON
+	LV_VIEW_ICON		equ 0
+	LV_VIEW_DETAILS		equ 1
+	LV_VIEW_SMALLICON	equ 2
+	LV_VIEW_LIST		equ 3
+	LV_VIEW_TILE		equ 4
+	LV_VIEW_MAX			equ 4
+ENDIF
+
+IFNDEF LVGF_NONE
+	LVGF_NONE		equ 0
+	LVGF_HEADER		equ 1
+	LVGF_FOOTER		equ 2
+	LVGF_STATE		equ 4
+	LVGF_ALIGN		equ 8
+	LVGF_GROUPID	equ 10h
+ENDIF
+
+IFNDEF LVGS_NORMAL
+	LVGS_NORMAL		equ 0
+	LVGS_COLLAPSED	equ 1
+	LVGS_HIDDEN		equ 2
+ENDIF
+
+IFNDEF LVGA_HEADER_LEFT
+	LVGA_HEADER_LEFT	equ 1
+	LVGA_HEADER_CENTER	equ 2
+	LVGA_HEADER_RIGHT	equ 4		;; Don't forget to validate exclusivity
+	LVGA_FOOTER_LEFT	equ 8
+	LVGA_FOOTER_CENTER	equ 10h
+	LVGA_FOOTER_RIGHT	equ 20h		;; Don't forget to validate exclusivity
+ENDIF
+
+IFNDEF LVGMF_NONE
+	LVGMF_NONE			equ 0
+	LVGMF_BORDERSIZE	equ 4
+	LVGMF_BORDERCOLOR	equ 2
+	LVGMF_TEXTCOLOR		equ 4
+ENDIF
+
+IFNDEF LVTVIF_AUTOSIZE
+	LVTVIF_AUTOSIZE		equ 0
+	LVTVIF_FIXEDWIDTH	equ 1
+	LVTVIF_FIXEDHEIGHT	equ 2
+	LVTVIF_FIXEDSIZE	equ 3
+ENDIF
+
+IFNDEF LVTVIM_TILESIZE
+	LVTVIM_TILESIZE		equ 1
+	LVTVIM_COLUMNS		equ 2
+	LVTVIM_LABELMARGIN	equ 4
+ENDIF
+
+IFNDEF LVM_APPROXIMATEVIEWRECT
+	LVM_APPROXIMATEVIEWRECT equ LVM_FIRST + 64
+ENDIF
+
+ListView_ApproximateViewRect MACRO hwnd:REQ, x:REQ, y:REQ, iCount:REQ
+	invoke SendMessage, hwnd, LVM_APPROXIMATEVIEWRECT, iCount, $MAKEDWORD(x, y)
+ENDM
+
+ListView_Arrange MACRO hwnd:REQ, code:REQ
+	invoke SendMessage, hwnd, LVM_ARRANGE, code, 0
+ENDM
+
+IFNDEF LVM_CANCELEDITLABEL
+	LVM_CANCELEDITLABEL equ LVM_FIRST + 179
+ENDIF
+
+ListView_CancelEditLabel MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_CANCELEDITLABEL, 0, 0
+ENDM
+
+ListView_CreateDragImage MACRO hwnd:REQ, iItem:REQ, lpptUpLeft:REQ
+	invoke SendMessage, hwnd, LVM_CREATEDRAGIMAGE, iItem, lpptUpLeft
+ENDM
+
+ListView_DeleteAllItems MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_DELETEALLITEMS, 0, 0
+ENDM
+
+ListView_DeleteColumn MACRO hwnd:REQ, iCol:REQ
+	invoke SendMessage, hwnd, LVM_DELETECOLUMN, iCol, 0
+ENDM
+
+ListView_DeleteItem MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_DELETEITEM, iItem, 0
+ENDM
+
+ListView_EditLabel MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_EDITLABEL, iItem, 0
+ENDM
+
+IFNDEF LVM_ENABLEGROUPVIEW
+	LVM_ENABLEGROUPVIEW equ LVM_FIRST + 157
+ENDIF
+
+ListView_EnableGroupView MACRO hwnd:REQ, fEnable:REQ
+	invoke SendMessage, hwnd, LVM_ENABLEGROUPVIEW, fEnable, 0
+ENDM
+
+ListView_EnsureVisible MACRO hwnd:REQ, i:REQ, fPartialOK:REQ
+	invoke SendMessage, hwnd, LVM_ENSUREVISIBLE, i, $MAKEDWORD(fPartialOK, 0)
+ENDM
+
+ListView_FindItem MACRO hwnd:REQ, iStart:REQ, plvfi:REQ
+	invoke SendMessage, hwnd, LVM_FINDITEM, iStart, plvfi
+ENDM
+
+ListView_GetBkColor MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETBKCOLOR, 0, 0
+ENDM
+
+IFNDEF LVBKIMAGE
+	LVBKIMAGE STRUCT
+		ulFlags			DWORD	?
+		hbm				HBITMAP	?
+		pszImage		LPSTR	?
+		cchImageMax		DWORD	?
+		xOffsetPercent	DWORD	?
+		yOffsetPercent	DWORD	?
+	LVBKIMAGE ENDS
+
+	LVBKIMAGEA equ <LVBKIMAGE>
+	LVBKIMAGEW equ <LVBKIMAGE>
+
+	LVBKIF_SOURCE_NONE		equ 0
+	LVBKIF_SOURCE_HBITMAP	equ 1
+	LVBKIF_SOURCE_URL		equ 2
+	LVBKIF_SOURCE_MASK		equ 3
+	LVBKIF_STYLE_NORMAL		equ 0
+	LVBKIF_STYLE_TILE		equ 10h
+	LVBKIF_STYLE_MASK		equ 10h
+	LVBKIF_FLAG_TILEOFFSET	equ 100h
+	LVBKIF_TYPE_WATERMARK	equ 10000000h
+ENDIF
+
+IFNDEF LVM_GETBKIMAGE
+	LVM_GETBKIMAGEA equ LVM_FIRST + 69
+	LVM_GETBKIMAGEW equ LVM_FIRST + 139
+	IF UNICODE
+		LVM_GETBKIMAGE equ LVM_GETBKIMAGEW
+	ELSE
+		LVM_GETBKIMAGE equ LVM_GETBKIMAGEA		
+	ENDIF
+ENDIF
+
+ListView_GetBkImage MACRO hwnd:REQ, plvbki:REQ
+	invoke SendMessage, hwnd, LVM_GETBKIMAGE, 0, plvbki
+ENDM
+
+ListView_GetCallbackMask MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETCALLBACKMASK, 0, 0
+ENDM
+
+ListView_GetCheckState MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_GETITEMSTATE, iItem, LVIS_STATEIMAGEMASK
+	shr eax, 12
+	dec eax
+ENDM
+
+ListView_GetColumn MACRO hwnd:REQ, iCol:REQ, pcol:REQ
+	invoke SendMessage, hwnd, LVM_GETCOLUMN, iCol, pcol
+ENDM
+
+IFNDEF LVM_GETCOLUMNORDERARRAY
+	LVM_GETCOLUMNORDERARRAY equ LVM_FIRST + 59
+ENDIF
+
+ListView_GetColumnOrderArray MACRO hwnd:REQ, iCount:REQ, lpiArray:REQ
+	invoke SendMessage, hwnd, LVM_GETCOLUMNORDERARRAY, iCount, lpiArray
+ENDM
+
+ListView_GetColumnWidth MACRO hwnd:REQ, iCol:REQ
+	invoke SendMessage, hwnd, LVM_GETCOLUMNWIDTH, iCol, 0
+ENDM
+
+ListView_GetCountPerPage MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETCOUNTPERPAGE, 0, 0
+ENDM
+
+ListView_GetEditControl MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETEDITCONTROL, 0, 0
+ENDM
+
+ListView_GetExtendedListViewStyle MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0
+ENDM
+
+IFNDEF LV_GROUP
+	LV_GROUP STRUCT
+		cbSize		UINT	?
+		imask		UINT	?
+		pszHeader	LPWSTR	?
+		cchHeader	UINT	?
+
+		pszFooter	LPWSTR	?
+		cchFooter	LPWSTR	?
+
+		iGroupId	UINT	?
+		stateMask	UINT	?
+		state		UINT	?
+		uAlign		UINT	?
+	LV_GROUP ENDS
+	
+	LVGROUP equ <LV_GROUP>
+ENDIF
+
+IFNDEF LVM_GETGROUPINFO
+	LVM_GETGROUPINFO equ LVM_FIRST + 149
+ENDIF
+
+ListView_GetGroupInfo MACRO hwnd:REQ, iGroupId:REQ, pgrp:REQ
+	invoke SendMessage, hwnd, LVM_GETGROUPINFO, iGroupId, pgrp
+ENDM
+
+IFNDEF LVGROUPMETRICS
+	LVGROUPMETRICS STRUCT
+		cbSize		UINT		?
+		imask		UINT		?
+		Left		UINT		?
+		Top			UINT		?
+		Right		UINT		?
+		Bottom		UINT		?
+		crLeft		COLORREF	?
+		crTop		COLORREF	?
+		crRight		COLORREF	?
+		crBottom	COLORREF	?
+		crHeader	COLORREF	?
+		crFooter	COLORREF	?
+	LVGROUPMETRICS ENDS
+ENDIF
+
+IFNDEF LVM_GETGROUPMETRICS
+	LVM_GETGROUPMETRICS equ LVM_FIRST + 156
+ENDIF
+
+ListView_GetGroupMetrics MACRO hwnd:REQ, pGroupMetrics:REQ
+	invoke SendMessage, hwnd, LVM_GETGROUPMETRICS, 0, pGroupMetrics
+ENDM
+
+ListView_GetHeader MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETHEADER, 0, 0
+ENDM
+
+IFNDEF LVM_GETHOTCURSOR
+	LVM_GETHOTCURSOR equ LVM_FIRST + 63
+ENDIF
+
+ListView_GetHotCursor MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETHOTCURSOR, 0, 0
+ENDM
+
+IFNDEF LVM_GETHOTITEM
+	LVM_GETHOTITEM equ LVM_FIRST + 61
+ENDIF
+
+ListView_GetHotItem MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETHOTITEM, 0, 0
+ENDM
+
+IFNDEF LVM_GETHOVERTIME
+	LVM_GETHOVERTIME equ LVM_FIRST + 72
+ENDIF
+
+ListView_GetHoverTime MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETHOVERTIME, 0, 0
+ENDM
+
+ListView_GetImageList MACRO hwnd:REQ, iImageList:REQ
+	invoke SendMessage, hwnd, LVM_GETIMAGELIST, iImageList, 0
+ENDM
+
+IFNDEF LVINSERTMARK
+	LVINSERTMARK STRUCT
+		cbSize		UINT	?
+		dwFlags		DWORD	?
+		iItem		DWORD	?
+		dwReserved	DWORD	?
+	LVINSERTMARK ENDS
+ENDIF
+
+IFNDEF LVIM_AFTER
+	LVIM_AFTER equ 1		; TRUE = insert After iItem, otherwise before
+ENDIF
+
+IFNDEF LVM_GETINSERTMARK
+	LVM_GETINSERTMARK equ LVM_FIRST + 167
+ENDIF
+
+ListView_GetInsertMark MACRO hwnd:REQ, lvim:REQ
+	invoke SendMessage, hwnd, LVM_GETINSERTMARK, 0, lvim
+ENDM
+
+IFNDEF LVM_GETINSERTMARKCOLOR
+	LVM_GETINSERTMARKCOLOR equ LVM_FIRST + 171
+ENDIF
+
+ListView_GetInsertMarkColor MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETINSERTMARKCOLOR, 0, 0
+ENDM
+
+IFNDEF LVM_GETINSERTMARKRECT
+	LVM_GETINSERTMARKRECT equ LVM_FIRST + 169
+ENDIF
+
+ListView_GetInsertMarkRect MACRO hwnd:REQ, rc:REQ
+	invoke SendMessage, hwnd, LVM_GETINSERTMARKRECT, 0, rc
+ENDM
+
+ListView_GetISearchString MACRO hwnd:REQ, lpsz:REQ
+	invoke SendMessage, hwnd, LVM_GETISEARCHSTRING, 0, lpsz
+ENDM
+
+ListView_GetItem MACRO hwnd:REQ, pitem:REQ
+	invoke SendMessage, hwnd, LVM_GETITEM, 0, pitem
+ENDM
+
+ListView_GetItemCount MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETITEMCOUNT, 0, 0
+ENDM
+
+ListView_GetItemPosition MACRO hwnd:REQ, i:REQ, ppt:REQ
+	invoke SendMessage, hwnd, LVM_GETITEMPOSITION, i, ppt
+ENDM
+
+;;............................................................
+ListView_GetItemRect MACRO hwnd:REQ, i:REQ, prc:REQ, code:REQ
+
+;;#define ListView_GetItemRect(hwnd, i, prc, code) \
+;;SNDMSG(hwnd, LVM_GETITEMRECT, i, (prc ? (prc->left = code, prc) : NULL)
+
+local p, line
+	IF $IsAddr(prc)
+;    IF @InStr(1, <prc>, <addr >)
+        p SUBSTR <prc>, 6
+		IF (OPATTR (p)) AND 01000000y					;; Is relative to SS
+			lea eax, p
+			IF (OPATTR (code)) AND 00000010y			;; Is a memory variable
+				push code
+				pop dword ptr [eax]
+			ELSEIF (OPATTR (code)) AND 00000100y		;; Is an immediate value
+				IF code
+					mov dword ptr [eax], code
+				ELSE				;; code = 0
+					and dword ptr [eax], 0
+				ENDIF
+			ELSE
+				mov dword ptr [eax], code
+			ENDIF
+			invoke SendMessage, hwnd, LVM_GETITEMRECT, i, eax
+		ELSE
+			IF (OPATTR (code)) AND 00000010y			;; Is a memory variable
+				push code
+				pop dword ptr p
+			ELSE
+				mov dword ptr p, code
+			ENDIF
+			invoke SendMessage, hwnd, LVM_GETITEMRECT, i, offset p
+		ENDIF
+	ELSEIF (OPATTR (prc)) AND 00010000y					;; Is a register value
+		IF (OPATTR (code)) AND 00000010y				;; Is a memory variable
+			push code
+			pop dword ptr [prc]
+		ELSE
+			mov dword ptr [prc], code
+		ENDIF
+		invoke SendMessage, hwnd, LVM_GETITEMRECT, i, prc
+;	ELSEIF prc EQ NULL
+;		invoke SendMessage, hwnd, LVM_GETITEMRECT, i, NULL
+		;line TEXTEQU %@Line
+		;% ECHO @FileCur(line) : ListView_GetItemRect macro ERROR! Pointer to RECT is NULL.
+		;.ERR
+	ELSE
+		line TEXTEQU %@Line
+		% ECHO @FileCur(line) : ListView_GetItemRect macro ERROR! Can't recognize type of &prc. Should be pointer to RECT.;;'
+		.ERR
+	ENDIF
+ENDM
+;;............................................................
+
+ListView_GetItemSpacing MACRO hwnd:REQ, fSmall:REQ
+	invoke SendMessage, hwnd, LVM_GETITEMSPACING, fSmall, 0
+ENDM
+
+IFNDEF LVIS_ACTIVATING
+	LVIS_ACTIVATING equ 20h
+ENDIF
+
+ListView_GetItemState MACRO hwnd:REQ, i:REQ, imask:REQ
+	invoke SendMessage, hwnd, LVM_GETITEMSTATE, i, imask
+ENDM
+
+;;......................................................................
+ListView_GetItemText MACRO hwnd:REQ, itm:REQ, sbi:REQ, psz:REQ, cch:REQ
+local SegName, p, line, reax, err
+	reax = 0
+	err = 0
+;;	IFNDEF ListView_dummy_LV_ITEM
+;;		;SegName TEXTEQU @CurSeg
+;;		.data?
+;;		ListView_dummy_LV_ITEM LV_ITEM <>
+;;		.code
+;;		;line TEXTEQU %@Line
+;;		;% ECHO @FileCur(line) : ListView_GetItemText macro report! Extra LV_ITEM structure defined.;;'
+;;		;@CurSeg ENDS
+;;		;SegName SEGMENT
+;;	ENDIF
+
+	sub esp, sizeof LV_ITEM
+
+	IF (OPATTR (sbi)) AND 00000010y						;; Is a memory variable
+		push sbi
+		pop (LV_ITEM PTR [esp]).iSubItem
+	ELSE
+		mov (LV_ITEM PTR [esp]).iSubItem, sbi
+	ENDIF
+
+	IF (OPATTR (cch)) AND 00000010y						;; Is a memory variable
+		push cch
+		pop (LV_ITEM PTR [esp]).cchTextMax
+	ELSE
+		mov (LV_ITEM PTR [esp]).cchTextMax, cch
+	ENDIF
+
+	IF $IsAddr(psz)
+;    IF @InStr(1, <psz>, <addr >)
+        p SUBSTR <psz>, 6
+		IF (OPATTR (p)) AND 01000000y					;; Is relative to SS
+			lea eax, p
+			mov (LV_ITEM PTR [esp]).pszText, eax
+			reax = 1
+		ELSE
+			mov (LV_ITEM PTR [esp]).pszText, offset p	;; 1 byte smaller than lea
+		ENDIF		
+	ELSEIF (OPATTR (psz)) AND 00010000y					;; Is a register value
+		mov (LV_ITEM PTR [esp]).pszText, psz
+	ELSEIF (OPATTR (psz)) AND 00000010y					;; Is a memory variable
+		push psz
+		pop (LV_ITEM PTR [esp]).pszText
+	;;ELSEIF psz EQ NULL
+	;;	line TEXTEQU %@Line
+	;;	% ECHO @FileCur(line) : ListView_GetItemText macro ERROR! Pointer to string is NULL.
+	;;	.ERR
+	ELSE
+		line TEXTEQU %@Line
+		% ECHO @FileCur(line) : ListView_GetItemText macro ERROR! Can't recognize type of &psz. Should be string pointer.;;'
+		.ERR
+	ENDIF
+
+	IF reax
+		IFIDNI <hwnd>, <eax>
+			err = 1
+		ENDIF
+		IFIDNI <itm>, <eax>
+			err = 1
+		ENDIF
+		IF err
+			line TEXTEQU %@Line
+			% ECHO @FileCur(line) : ERROR! Register value overwritten by ListView_GetItemText macro.
+			.ERR
+		ENDIF		
+	ENDIF
+	invoke SendMessage, hwnd, LVM_GETITEMTEXT, itm, esp
+	add esp, sizeof LV_ITEM
+ENDM
+;;............................................................
+
+ListView_GetNextItem MACRO hwnd:REQ, iStart:REQ, flags:REQ
+	invoke SendMessage, hwnd, LVM_GETNEXTITEM, iStart, $MAKEDWORD(flags, 0)
+ENDM
+
+IFNDEF LVM_GETNUMBEROFWORKAREAS
+	LVM_GETNUMBEROFWORKAREAS equ LVM_FIRST + 73
+ENDIF
+
+ListView_GetNumberOfWorkAreas MACRO hwnd:REQ, lpuWorkAreas:REQ
+	invoke SendMessage, hwnd, LVM_GETNUMBEROFWORKAREAS, 0, lpuWorkAreas
+ENDM
+
+ListView_GetOrigin MACRO hwnd:REQ, lpptOrg:REQ
+	invoke SendMessage, hwnd, LVM_GETORIGIN, 0, lpptOrg
+ENDM
+
+IFNDEF LVM_GETOUTLINECOLOR
+	LVM_GETOUTLINECOLOR equ LVM_FIRST + 176
+ENDIF
+
+ListView_GetOutlineColor MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETOUTLINECOLOR, 0, 0
+ENDM
+
+ListView_GetSelectedCount MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETSELECTEDCOUNT, 0, 0
+ENDM
+
+IFNDEF LVM_GETSELECTEDCOLUMN
+	LVM_GETSELECTEDCOLUMN equ LVM_FIRST + 174
+ENDIF
+
+ListView_GetSelectedColumn MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETSELECTEDCOLUMN, 0, 0
+ENDM
+
+IFNDEF LVM_GETSELECTIONMARK
+	LVM_GETSELECTIONMARK equ LVM_FIRST + 66
+ENDIF
+
+ListView_GetSelectionMark MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETSELECTIONMARK, 0, 0
+ENDM
+
+ListView_GetStringWidth MACRO hwnd:REQ, psz:REQ
+	invoke SendMessage, hwnd, LVM_GETSTRINGWIDTH, 0, psz
+ENDM
+
+IFNDEF LVM_GETSUBITEMRECT
+	LVM_GETSUBITEMRECT equ LVM_FIRST + 56
+ENDIF
+
+;;.................................................................................
+ListView_GetSubItemRect MACRO hwnd:REQ, iItem:REQ, iSubItem:REQ, code:REQ, prc:REQ
+local p, line
+
+	IF $IsAddr(prc)
+;;	IF @InStr(1, <prc>, <addr >)
+		p SUBSTR <prc>, 6
+		IF (OPATTR (p)) AND 01000000y		;; Is relative to SS
+			lea eax, p
+		ELSE
+			mov eax, offset p				;; 1 byte smaller than lea
+		ENDIF
+
+		IF (OPATTR (code)) AND 00000010y		;; Is a memory variable or has a relocatable data label
+			push code
+			pop dword ptr [eax]
+		ELSE
+			mov dword ptr [eax], code			;; (RECT PTR [eax]).left, code
+		ENDIF
+		IF (OPATTR (iSubItem)) AND 00000010y	;; Is a memory variable or has a relocatable data label
+			push iSubItem
+			pop dword ptr [eax][4]
+		ELSE
+			mov dword ptr [eax][4], iSubItem
+		ENDIF
+		;;_mov dword ptr [eax][4], iSubItem		; mov (RECT PTR [eax]).top, iSubItem
+		invoke SendMessage, hwnd, LVM_GETSUBITEMRECT, iItem, eax		
+	ELSEIF (OPATTR (prc)) AND 00010000y			;; Is a register value
+		IF (OPATTR (code)) AND 00000010y		;; Is a memory variable or has a relocatable data label
+			push code
+			pop dword ptr [prc]
+		ELSE
+			mov dword ptr [prc], code
+		ENDIF
+		;;_mov dword ptr [prc], code
+		IF (OPATTR (iSubItem)) AND 00000010y	;; Is a memory variable or has a relocatable data label
+			push iSubItem
+			pop dword ptr [prc][4]
+		ELSE
+			mov dword ptr [prc][4], iSubItem
+		ENDIF
+		;;_mov dword ptr [prc][4], iSubItem
+		invoke SendMessage, hwnd, LVM_GETSUBITEMRECT, iItem, prc
+	ELSEIF prc EQ NULL
+		line TEXTEQU %@Line
+		% ECHO @FileCur(line) : ListView_GetSubItemRect macro ERROR! Pointer to RECT is NULL.
+		.ERR
+	ELSE
+		.ERR <ERROR!!! Can't recognize type of &prc.>;;'
+	ENDIF
+ENDM
+;;......................................
+
+ListView_GetTextBkColor  MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETTEXTBKCOLOR, 0, 0
+ENDM
+
+ListView_GetTextColor MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETTEXTCOLOR, 0, 0
+ENDM
+
+IFNDEF LVTILEINFO
+	LVTILEINFO STRUCT
+		cbSize		DWORD	?
+		iItem		DWORD	?
+		cColumns	DWORD	?
+		puColumns	DWORD	?
+	LVTILEINFO ENDS
+ENDIF
+
+IFNDEF LVM_GETTILEINFO
+	LVM_GETTILEINFO equ LVM_FIRST + 165
+ENDIF
+
+ListView_GetTileInfo MACRO pti:REQ
+	invoke SendMessage, hwnd, LVM_GETTILEINFO, 0, pti
+ENDM
+
+IFNDEF LVTILEVIEWINFO
+	LVTILEVIEWINFO STRUCT
+		cbSize			DWORD	?
+		dwMask			DWORD	?
+		dwFlags			DWORD	?
+		sizeTile		_SIZE	<>
+		cLines			DWORD	?
+		rcLabelMargin	RECT	<>
+	LVTILEVIEWINFO ENDS
+ENDIF
+
+IFNDEF LVM_GETTILEVIEWINFO
+	LVM_GETTILEVIEWINFO equ LVM_FIRST + 163
+ENDIF
+
+ListView_GetTileViewInfo MACRO ptvi:REQ
+	invoke SendMessage, hwnd, LVM_GETTILEVIEWINFO, 0, ptvi
+ENDM
+
+IFNDEF LVM_GETTOOLTIPS
+	LVM_GETTOOLTIPS equ LVM_FIRST + 78
+ENDIF
+
+ListView_GetToolTips MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETTOOLTIPS, 0, 0
+ENDM
+
+ListView_GetTopIndex MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETTOPINDEX, 0, 0
+ENDM
+
+IFNDEF LVM_GETUNICODEFORMAT
+	LVM_GETUNICODEFORMAT equ CCM_GETUNICODEFORMAT
+ENDIF
+
+ListView_GetUnicodeFormat MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETUNICODEFORMAT, 0, 0
+ENDM
+
+IFNDEF LVM_GETVIEW
+	LVM_GETVIEW equ LVM_FIRST + 143
+ENDIF
+
+ListView_GetView MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_GETVIEW, 0, 0
+ENDM
+
+IFNDEF LVM_GETVIEWRECT
+	LVM_GETVIEWRECT equ LVM_FIRST + 34
+ENDIF
+
+ListView_GetViewRect MACRO hwnd:REQ, prc:REQ
+	invoke SendMessage, hwnd, LVM_GETVIEWRECT, 0, prc
+ENDM
+
+IFNDEF LVM_GETWORKAREAS
+	LVM_GETWORKAREAS equ LVM_FIRST + 70
+ENDIF
+
+ListView_GetWorkAreas MACRO hwnd:REQ, nWorkAreas:REQ, prc:REQ
+	invoke SendMessage, hwnd, LVM_GETWORKAREAS, nWorkAreas, prc
+ENDM
+
+IFNDEF LVM_HASGROUP
+	LVM_HASGROUP equ LVM_FIRST + 161
+ENDIF
+
+ListView_HasGroup MACRO hwnd:REQ, dwGroupId:REQ
+	invoke SendMessage, hwnd, LVM_HASGROUP, dwGroupId, 0
+ENDM
+
+ListView_HitTest MACRO hwnd:REQ, pinfo:REQ
+	invoke SendMessage, hwnd, LVM_HITTEST, 0, pinfo
+ENDM
+
+ListView_InsertColumn MACRO hwnd:REQ, iCol:REQ, pcol:REQ
+	invoke SendMessage, hwnd, LVM_INSERTCOLUMN, iCol, pcol
+ENDM
+
+IFNDEF LVM_INSERTGROUP
+	LVM_INSERTGROUP equ LVM_FIRST + 145
+ENDIF
+
+ListView_InsertGroup MACRO hwnd:REQ, index:REQ, pgrp:REQ
+	invoke SendMessage, hwnd, LVM_INSERTGROUP, index, pgrp
+ENDM
+
+IFNDEF LVTILEVIEWINFO
+	LVTILEVIEWINFO STRUCT
+		pfnGroupCompare	DWORD	?
+		pvData			DWORD	?
+		lvGroup			LVGROUP	<>
+	LVTILEVIEWINFO ENDS
+ENDIF
+
+IFNDEF LVM_INSERTGROUPSORTED
+	LVM_INSERTGROUPSORTED equ LVM_FIRST + 159
+ENDIF
+
+ListView_InsertGroupSorted MACRO hwnd:REQ, structInsert:REQ
+	invoke SendMessage, hwnd, LVM_INSERTGROUPSORTED, structInsert, 0
+ENDM
+
+ListView_InsertItem MACRO hwnd:REQ, pitem:REQ
+	invoke SendMessage, hwnd, LVM_INSERTITEM, 0, pitem
+ENDM
+
+IFNDEF LVM_INSERTMARKHITTEST
+	LVM_INSERTMARKHITTEST equ LVM_FIRST + 168
+ENDIF
+
+ListView_InsertMarkHitTest MACRO hwnd:REQ, point:REQ, lvim:REQ
+	invoke SendMessage, hwnd, LVM_INSERTMARKHITTEST, point, lvim
+ENDM
+
+IFNDEF LVM_ISGROUPVIEWENABLED
+	LVM_ISGROUPVIEWENABLED equ LVM_FIRST + 175
+ENDIF
+
+ListView_IsGroupViewEnabled MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_ISGROUPVIEWENABLED, 0, 0
+ENDM
+
+IFNDEF LVM_MAPINDEXTOID
+	LVM_MAPINDEXTOID equ LVM_FIRST + 180
+ENDIF
+
+ListView_MapIndexToID MACRO hwnd:REQ, index:REQ
+	invoke SendMessage, hwnd, LVM_MAPINDEXTOID, index, 0
+ENDM
+
+IFNDEF LVM_MAPIDTOINDEX
+	LVM_MAPIDTOINDEX equ LVM_FIRST + 181
+ENDIF
+
+ListView_MapIDToIndex MACRO hwnd:REQ, id:REQ
+	invoke SendMessage, hwnd, LVM_MAPIDTOINDEX, id, 0
+ENDM
+
+IFNDEF LVM_MOVEGROUP
+	LVM_MOVEGROUP equ LVM_FIRST + 151
+ENDIF
+
+ListView_MoveGroup MACRO hwnd:REQ, iGroupId:REQ, toIndex:REQ
+	invoke SendMessage, hwnd, LVM_MOVEGROUP, iGroupId, toIndex
+ENDM
+
+IFNDEF LVM_MOVEITEMTOGROUP
+	LVM_MOVEITEMTOGROUP equ LVM_FIRST + 154
+ENDIF
+
+ListView_MoveItemToGroup MACRO hwnd:REQ, idItemFrom:REQ, idGroupTo:REQ
+	invoke SendMessage, hwnd, LVM_MOVEITEMTOGROUP, idItemFrom, idGroupTo
+ENDM
+
+ListView_RedrawItems MACRO hwnd:REQ, iFirst:REQ, iLast:REQ
+	invoke SendMessage, hwnd, LVM_REDRAWITEMS, iFirst, iLast
+ENDM
+
+IFNDEF LVM_REMOVEALLGROUPS
+	LVM_REMOVEALLGROUPS equ LVM_FIRST + 160
+ENDIF
+
+ListView_RemoveAllGroups MACRO hwnd:REQ
+	invoke SendMessage, hwnd, LVM_REMOVEALLGROUPS, 0, 0
+ENDM
+
+IFNDEF LVM_REMOVEGROUP
+	LVM_REMOVEGROUP equ LVM_FIRST + 150
+ENDIF
+
+ListView_RemoveGroup MACRO hwnd:REQ, iGroupId:REQ
+	invoke SendMessage, hwnd, LVM_REMOVEGROUP, iGroupId, 0
+ENDM
+
+ListView_Scroll MACRO hwnd:REQ, ix:REQ, iy:REQ
+	invoke SendMessage, hwnd, LVM_SCROLL, ix, iy
+ENDM
+
+ListView_SetBkColor MACRO hwnd:REQ, clrBk:REQ
+	invoke SendMessage, hwnd, LVM_SETBKCOLOR, 0, clrBk
+ENDM
+
+IFNDEF LVM_SETBKIMAGE
+	LVM_SETBKIMAGEA equ LVM_FIRST + 68
+	LVM_SETBKIMAGEW equ LVM_FIRST + 138
+	IF UNICODE
+		LVM_SETBKIMAGE equ LVM_SETBKIMAGEW
+	ELSE
+		LVM_SETBKIMAGE equ LVM_SETBKIMAGEA		
+	ENDIF
+ENDIF
+
+ListView_SetBkImage MACRO hwnd:REQ, plvbki:REQ
+	invoke SendMessage, hwnd, LVM_SETBKIMAGE, 0, plvbki
+ENDM
+
+ListView_SetCallbackMask MACRO hwnd:REQ, imask:REQ
+	invoke SendMessage, hwnd, LVM_SETCALLBACKMASK, imask, 0
+ENDM
+
+ListView_SetColumn MACRO hwnd:REQ, iCol:REQ, pcol:REQ
+	invoke SendMessage, hwnd, LVM_SETCOLUMN, iCol, pcol
+ENDM
+
+IFNDEF LVM_SETCOLUMNORDERARRAY
+	LVM_SETCOLUMNORDERARRAY equ LVM_FIRST + 58
+ENDIF
+
+ListView_SetColumnOrderArray MACRO hwnd:REQ, iCount:REQ, lpiArray:REQ
+	invoke SendMessage, hwnd, LVM_SETCOLUMNORDERARRAY, iCount, lpiArray
+ENDM
+
+ListView_SetColumnWidth MACRO hwnd:REQ, iCol:REQ, x:REQ
+	invoke SendMessage, hwnd, LVM_SETCOLUMNWIDTH, iCol, $MAKEDWORD(x, 0)
+
+ENDM
+
+ListView_SetExtendedListViewStyle MACRO hwnd:REQ, dwExStyle:REQ
+	invoke SendMessage, hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, dwExStyle
+ENDM
+
+ListView_SetExtendedListViewStyleEx MACRO hwnd:REQ, dwExMask:REQ, dwExStyle:REQ
+	invoke SendMessage, hwnd, LVM_SETEXTENDEDLISTVIEWSTYLE, dwExMask, dwExStyle
+ENDM
+
+IFNDEF LVM_SETGROUPINFO
+	LVM_SETGROUPINFO equ LVM_FIRST + 147
+ENDIF
+
+ListView_SetGroupInfo MACRO hwnd:REQ, iGroupId:REQ, pgrp:REQ
+	invoke SendMessage, hwnd, LVM_SETGROUPINFO, iGroupId, pgrp
+ENDM
+
+IFNDEF LVM_SETGROUPMETRICS
+	LVM_SETGROUPMETRICS equ LVM_FIRST + 155
+ENDIF
+
+ListView_SetGroupMetrics MACRO hwnd:REQ, pGroupMetrics:REQ
+	invoke SendMessage, hwnd, LVM_SETGROUPMETRICS, 0, pGroupMetrics
+ENDM
+
+IFNDEF LVM_SETHOTCURSOR
+	LVM_SETHOTCURSOR equ LVM_FIRST + 62
+ENDIF
+
+ListView_SetHotCursor MACRO hwnd:REQ, hCursor:REQ
+	invoke SendMessage, hwnd, LVM_SETHOTCURSOR, 0, hCursor
+ENDM
+
+IFNDEF LVM_SETHOTITEM
+	LVM_SETHOTITEM equ LVM_FIRST + 60
+ENDIF
+
+ListView_SetHotItem MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_SETHOTITEM, iItem, 0
+ENDM
+
+IFNDEF LVM_SETHOVERTIME
+	LVM_SETHOVERTIME equ LVM_FIRST + 71
+ENDIF
+
+ListView_SetHoverTime MACRO hwnd:REQ, dwHoverTime:REQ
+	invoke SendMessage, hwnd, LVM_SETHOVERTIME, 0, dwHoverTime
+ENDM
+
+IFNDEF LVM_SETICONSPACING
+	LVM_SETICONSPACING equ LVM_FIRST + 53
+ENDIF
+
+;; -1 for x and y means we'll use the default (system settings)
+;; 0 for x or y means use the current setting (allows you to change just one param)
+ListView_SetIconSpacing MACRO hwnd:REQ, x:REQ, y:REQ
+	invoke SendMessage, hwnd, LVM_SETICONSPACING, 0, $MAKEDWORD(x, y)
+ENDM
+
+ListView_SetImageList MACRO hwnd:REQ, himl:REQ, iImageList:REQ
+	invoke SendMessage, hwnd, LVM_SETIMAGELIST, iImageList, himl
+ENDM
+
+IFNDEF LVSETINFOTIP
+	LVSETINFOTIP STRUCT
+		cbSize			UINT	?
+		dwFlags			DWORD	?
+		pszText			LPWSTR	?
+		iItem			DWORD	?
+		iSubItem		DWORD	?
+	LVSETINFOTIP ENDS
+ENDIF
+
+IFNDEF LVM_SETINFOTIP
+	LVM_SETINFOTIP equ LVM_FIRST + 173
+ENDIF
+
+ListView_SetInfoTip MACRO hwnd:REQ, plvInfoTip:REQ
+	invoke SendMessage, hwnd, LVM_SETINFOTIP, 0, plvInfoTip
+ENDM
+
+IFNDEF LVM_SETINSERTMARK
+	LVM_SETINSERTMARK equ LVM_FIRST + 166
+ENDIF
+
+ListView_SetInsertMark MACRO hwnd:REQ, lvim:REQ
+	invoke SendMessage, hwnd, LVM_SETINSERTMARK, 0, lvim
+ENDM
+
+IFNDEF LVM_SETINSERTMARKCOLOR
+	LVM_SETINSERTMARKCOLOR equ LVM_FIRST + 170
+ENDIF
+
+ListView_SetInsertMarkColor MACRO hwnd:REQ, color:REQ
+	invoke SendMessage, hwnd, LVM_SETINSERTMARKCOLOR, 0, color
+ENDM
+
+ListView_SetItem MACRO hwnd:REQ, pitem:REQ
+	invoke SendMessage, hwnd, LVM_SETITEM, 0, pitem
+ENDM
+
+ListView_SetItemCount MACRO hwnd:REQ, cItems:REQ
+	invoke SendMessage, hwnd, LVM_SETITEMCOUNT, cItems, 0
+ENDM
+
+;; these flags only apply to LVS_OWNERDATA listviews in report or list mode
+IFNDEF LVSICF_NOINVALIDATEALL
+	LVSICF_NOINVALIDATEALL equ 1
+ENDIF
+
+IFNDEF LVSICF_NOSCROLL
+	LVSICF_NOSCROLL equ 2
+ENDIF
+
+ListView_SetItemCountEx MACRO hwnd:REQ, cItems:REQ, dwFlags:REQ
+	invoke SendMessage, hwnd, LVM_SETITEMCOUNT, cItems, dwFlags
+ENDM
+
+ListView_SetItemPosition MACRO hwnd:REQ, i:REQ, x:REQ, y:REQ
+	invoke SendMessage, hwnd, LVM_SETITEMPOSITION, i, $MAKEDWORD(x, y)
+ENDM
+
+;;...................................................................
+ListView_SetItemPosition32 MACRO hwnd:REQ, iItem:REQ, ix:REQ, iy:REQ
+;;local SegName
+
+;;	IFNDEF ListView_dummy_POINT
+;;		;SegName TEXTEQU @CurSeg
+;;		.data?
+;;		ListView_dummy_POINT POINT <?>
+;;		.code
+;;		;line TEXTEQU %@Line
+;;		;% ECHO @FileCur(line) : ListView_SetItemPosition32 macro report! Extra POINT structure defined.;;'
+;;		;@CurSeg ENDS
+;;		;SegName SEGMENT
+;;	ENDIF
+
+	sub esp, sizeof POINT
+
+	IF (OPATTR (ix)) AND 00000010y				;; Is a memory variable
+		push ix
+		pop (POINT PTR [esp]).x
+	ELSE
+		mov (POINT PTR [esp]).x, ix
+	ENDIF
+
+	IF (OPATTR (iy)) AND 00000010y				;; Is a memory variable
+		push iy
+		pop (POINT PTR [esp]).y
+	ELSE
+		mov (POINT PTR [esp]).y, iy
+	ENDIF
+
+	invoke SendMessage, hwnd, LVM_SETITEMPOSITION32, iItem, esp
+	add esp, sizeof POINT
+ENDM
+
+IFNDEF LVIS_ACTIVATING
+	LVIS_ACTIVATING equ 20h
+ENDIF
+
+IFNDEF LVIF_INDENT
+	LVIF_INDENT equ 10h
+ENDIF
+
+IFNDEF LVIF_NORECOMPUTE
+	LVIF_NORECOMPUTE equ 800h
+ENDIF
+
+;;...................................................................
+ListView_SetItemState MACRO hwnd:REQ, iItem:REQ, data:REQ, flags:REQ
+;;local SegName
+;;	IFNDEF ListView_dummy_LV_ITEM
+;;		;SegName TEXTEQU @CurSeg
+;;		.data?
+;;		ListView_dummy_LV_ITEM LV_ITEM <>
+;;		.code
+;;		;line TEXTEQU %@Line
+;;		;% ECHO @FileCur(line) : ListView_SetItemState macro report! Extra LV_ITEM structure defined.;;'
+;;		;@CurSeg ENDS
+;;		;SegName SEGMENT
+;;	ENDIF
+
+	sub esp, sizeof LV_ITEM
+		
+	IF (OPATTR (data)) AND 00000010y				;; Is a memory variable
+		push data
+		pop (LV_ITEM PTR [esp]).state
+	ELSE
+		mov (LV_ITEM PTR [esp]).state, data
+	ENDIF
+
+	IF (OPATTR (flags)) AND 00000010y				;; Is a memory variable
+		push flags
+		pop (LV_ITEM PTR [esp]).stateMask
+	ELSE
+		mov (LV_ITEM PTR [esp]).stateMask, flags
+	ENDIF
+
+	invoke SendMessage, hwnd, LVM_SETITEMSTATE, iItem, esp
+	add esp, sizeof LV_ITEM
+ENDM
+;;...................................................................
+
+ListView_SetCheckState MACRO hwnd:REQ, i:REQ, fCheck:REQ
+local line, reax, err
+	reax = 0
+	err = 0
+
+	IF (OPATTR (fCheck)) AND 00000100y				;; Is an immediate value
+		IF fCheck
+			ListView_SetItemState hwnd, i, $INDEXTOSTATEIMAGEMASK(2), LVIS_STATEIMAGEMASK
+		ELSE
+			ListView_SetItemState hwnd, i, $INDEXTOSTATEIMAGEMASK(1), LVIS_STATEIMAGEMASK
+		ENDIF
+	ELSE
+		IF (OPATTR (fCheck)) AND 00010000y		;; Is a register value
+			IFDIFI <fCheck>, <eax>					;; not eax
+				xor eax, eax
+				cmp fCheck, 0
+				setnz al
+			ENDIF
+		ELSE
+			xor eax, eax
+			cmp fCheck, 0
+			setnz al
+		ENDIF
+		inc eax
+		shl eax, 12
+		reax = 1
+
+		IF reax
+			IFIDNI <hwnd>, <eax>
+				err = 1
+			ENDIF
+			IFIDNI <i>, <eax>
+				err = 1
+			ENDIF
+			IF err
+				line TEXTEQU %@Line
+				% ECHO @FileCur(line) : ERROR! Register value overwritten by ListView_SetItemState macro.
+				.ERR
+			ENDIF		
+		ENDIF
+		ListView_SetItemState hwnd, i, eax, LVIS_STATEIMAGEMASK
+	ENDIF
+ENDM
+
+;.............................................................
+ListView_SetItemText MACRO hwnd:REQ, itm:REQ, sbi:REQ, psz:REQ
+local SegName, p, line, reax, err
+	reax = 0
+	err = 0
+;;	IFNDEF ListView_dummy_LV_ITEM
+;;		;SegName TEXTEQU @CurSeg
+;;		.data?
+;;		ListView_dummy_LV_ITEM LV_ITEM <>
+;;		.code
+;;		;line TEXTEQU %@Line
+;;		;% ECHO @FileCur(line) : ListView_SetItemText macro report! Extra LV_ITEM structure defined.;;'
+;;		;@CurSeg ENDS
+;;		;SegName SEGMENT
+;;	ENDIF
+
+	sub esp, sizeof LV_ITEM
+
+	IF (OPATTR (sbi)) AND 00000010y				;; Is a memory variable
+		push sbi
+		pop (LV_ITEM PTR [esp]).iSubItem
+	ELSE
+		mov (LV_ITEM PTR [esp]).iSubItem, sbi
+	ENDIF
+
+    IF $IsAddr(psz)
+;;    IF @InStr(1, <psz>, <addr >)
+        p SUBSTR <psz>, 6
+		IF (OPATTR (p)) AND 01000000y				;; Is relative to SS
+			lea eax, p
+			mov (LV_ITEM PTR [esp]).pszText, eax
+			reax = 1
+		ELSE
+			mov (LV_ITEM PTR [esp]).pszText, offset p	;; 1 byte smaller than lea
+		ENDIF		
+	ELSEIF (OPATTR (psz)) AND 00010000y			;; Is a register value
+		mov (LV_ITEM PTR [esp]).pszText, psz
+	ELSEIF (OPATTR (psz)) AND 00000100y		;; Is an immediate value
+	;;ELSEIF psz EQ 0
+		;and (LV_ITEM PTR [esp]).pszText, 0
+		mov (LV_ITEM PTR [esp]).pszText, psz
+	ELSEIF (OPATTR (psz)) AND 00000010y				;; Is a memory variable
+		push psz
+		pop (LV_ITEM PTR [esp]).pszText	
+	ELSE
+		line TEXTEQU %@Line
+		% ECHO @FileCur(line) : ListView_SetItemText macro ERROR! Can't recognize type of &psz. Should be string pointer.;;'
+		.ERR
+	ENDIF
+
+	IF reax
+		IFIDNI <hwnd>, <eax>
+			err = 1
+		ENDIF
+		IFIDNI <itm>, <eax>
+			err = 1
+		ENDIF
+		IF err
+			line TEXTEQU %@Line
+			% ECHO @FileCur(line) : ERROR! Register value overwritten by ListView_SetItemText macro.
+			.ERR
+		ENDIF		
+	ENDIF
+	invoke SendMessage, hwnd, LVM_SETITEMTEXT, itm, esp
+	add esp, sizeof LV_ITEM
+ENDM
+
+IFNDEF LVM_SETOUTLINECOLOR
+	LVM_SETOUTLINECOLOR equ LVM_FIRST + 177
+ENDIF
+
+ListView_SetOutlineColor MACRO hwnd:REQ, color:REQ
+	invoke SendMessage, hwnd, LVM_SETOUTLINECOLOR, 0, color
+ENDM
+
+IFNDEF LVM_SETSELECTEDCOLUMN
+	LVM_SETSELECTEDCOLUMN equ LVM_FIRST + 140
+ENDIF
+
+ListView_SetSelectedColumn MACRO hwnd:REQ, iCol:REQ
+	invoke SendMessage, hwnd, LVM_SETSELECTEDCOLUMN, iCol, 0
+ENDM
+
+IFNDEF LVM_SETSELECTIONMARK
+	LVM_SETSELECTIONMARK equ LVM_FIRST + 67
+ENDIF
+
+ListView_SetSelectionMark MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_SETSELECTIONMARK, 0, iItem
+ENDM
+
+ListView_SetTextBkColor MACRO hwnd:REQ, clrText:REQ
+	invoke SendMessage, hwnd, LVM_SETTEXTBKCOLOR, 0, clrText
+ENDM
+
+ListView_SetTextColor MACRO hwnd:REQ, clrText:REQ
+	invoke SendMessage, hwnd, LVM_SETTEXTCOLOR, 0, clrText
+ENDM
+
+IFNDEF LVM_SETTILEINFO
+	LVM_SETTILEINFO equ LVM_FIRST + 164
+ENDIF
+
+ListView_SetTileInfo MACRO hwnd:REQ, pti:REQ
+	invoke SendMessage, hwnd, LVM_SETTILEINFO, 0, pti
+ENDM
+
+IFNDEF LVM_SETTILEVIEWINFO
+	LVM_SETTILEVIEWINFO equ LVM_FIRST + 162
+ENDIF
+
+ListView_SetTileViewInfo MACRO hwnd:REQ, ptvi:REQ
+	invoke SendMessage, hwnd, LVM_SETTILEVIEWINFO, 0, ptvi
+ENDM
+
+IFNDEF LVM_SETTOOLTIPS
+	LVM_SETTOOLTIPS equ LVM_FIRST + 74
+ENDIF
+
+ListView_SetToolTips MACRO hwnd:REQ, hwndToolTip:REQ
+	invoke SendMessage, hwnd, LVM_SETTOOLTIPS, hwndToolTip, 0
+ENDM
+
+IFNDEF LVM_SETTILEWIDTH
+	LVM_SETTILEWIDTH equ LVM_FIRST + 141
+ENDIF
+
+ListView_SetTileWidth MACRO hwnd:REQ, cpWidth:REQ
+	invoke SendMessage, hwnd, LVM_SETTILEWIDTH, cpWidth, 0
+ENDM
+
+IFNDEF LVM_SETUNICODEFORMAT
+	LVM_SETUNICODEFORMAT equ CCM_SETUNICODEFORMAT
+ENDIF
+
+ListView_SetUnicodeFormat MACRO hwnd:REQ, fUnicode:REQ
+	invoke SendMessage, hwnd, LVM_SETUNICODEFORMAT, fUnicode, 0
+ENDM
+
+IFNDEF LVM_SETVIEW
+	LVM_SETVIEW equ LVM_FIRST + 142
+ENDIF
+
+ListView_SetView MACRO hwnd:REQ, iView:REQ
+	invoke SendMessage, hwnd, LVM_SETVIEW, iView, 0
+ENDM
+
+IFNDEF LV_MAX_WORKAREAS
+	LV_MAX_WORKAREAS equ 16
+ENDIF
+
+IFNDEF LVM_SETWORKAREAS
+	LVM_SETWORKAREAS equ LVM_FIRST + 65
+ENDIF
+
+ListView_SetWorkAreas MACRO hwnd:REQ, nWorkAreas:REQ, prc:REQ
+local n, line
+	IF (OPATTR (nWorkAreas)) AND 00000100y
+		;; Is an immediate value
+		IF nWorkAreas GT LV_MAX_WORKAREAS
+			n TEXTEQU %LV_MAX_WORKAREAS
+			line TEXTEQU %@Line
+			% ECHO @FileCur(line) : ListView_SetWorkAreas macro ERROR! The maximum number of working areas allowed is n.
+			.ERR
+		ENDIF
+	ENDIF
+	invoke SendMessage, hwnd, LVM_SETWORKAREAS, nWorkAreas, prc
+ENDM
+
+IFNDEF LVM_SORTGROUPS
+	LVM_SORTGROUPS equ LVM_FIRST + 158
+ENDIF
+
+ListView_SortGroups MACRO hwnd:REQ, pfnGroupCompate:REQ, plv:REQ
+	invoke SendMessage, hwnd, LVM_SORTGROUPS, pfnGroupCompate, plv
+ENDM
+
+ListView_SortItems MACRO hwnd:REQ, pfnCompare:REQ, lParamSort:REQ
+	invoke SendMessage, hwnd, LVM_SORTITEMS, lParamSort, pfnCompare
+ENDM
+
+IFNDEF LVM_SORTITEMSEX
+	LVM_SORTITEMSEX equ LVM_FIRST + 81
+ENDIF
+
+ListView_SortItemsEx MACRO hwnd:REQ, pfnCompare:REQ, lParamSort:REQ
+	invoke SendMessage, hwnd, LVM_SORTITEMSEX, lParamSort, pfnCompare
+ENDM
+
+ListView_SubItemHitTest MACRO hwnd:REQ, plvhti:REQ
+	invoke SendMessage, hwnd, LVM_SUBITEMHITTEST, 0, plvhti
+ENDM
+
+ListView_Update MACRO hwnd:REQ, iItem:REQ
+	invoke SendMessage, hwnd, LVM_UPDATE, iItem, 0
+ENDM
+
+IFNDEF NMLVGETINFOTIP
+	NMLVGETINFOTIP STRUCT
+		hdr			NMHDR	<>
+		dwFlags		DWORD	?
+		pszText		LPSTR	?
+		cchTextMax	UINT	?
+		iItem		UINT	?
+		iSubItem	UINT	?
+		lParam		LPARAM	?
+	NMLVGETINFOTIP ENDS
+
+	NMLVGETINFOTIPW equ <NMLVGETINFOTIP>
+	NMLVGETINFOTIPA equ <NMLVGETINFOTIP>
+ENDIF
+
+IFNDEF LVGIT_UNFOLDED
+	LVGIT_UNFOLDED equ 1
+ENDIF
+
+IFNDEF LVN_GETINFOTIP
+	LVN_GETINFOTIPA equ LVN_FIRST-57
+	LVN_GETINFOTIPW equ LVN_FIRST-58
+	IF UNICODE
+		LVN_GETINFOTIP equ LVN_GETINFOTIPW
+	ELSE
+		LVN_GETINFOTIP equ LVN_GETINFOTIPA
+	ENDIF
+ENDIF
+
+IFNDEF LVN_HOTTRACK
+	LVN_HOTTRACK equ LVN_FIRST - 21
+ENDIF
+
+IFNDEF LVN_ITEMACTIVATE
+	LVN_ITEMACTIVATE equ LVN_FIRST - 14
+ENDIF
+
+IFNDEF LVN_ODSTATECHANGED
+	LVN_ODSTATECHANGED equ LVN_FIRST - 15
+ENDIF
+
+IFNDEF LVN_MARQUEEBEGIN
+	LVN_MARQUEEBEGIN equ LVN_FIRST - 56
+ENDIF
+
+IFNDEF LVN_ODCACHEHINT
+	LVN_ODCACHEHINT equ LVN_FIRST - 13
+ENDIF
+
+IFNDEF LVN_ODFINDITEM
+	LVN_ODFINDITEMA equ LVN_FIRST - 52
+	LVN_ODFINDITEMW equ LVN_FIRST - 79
+	IF UNICODE
+		LVN_ODFINDITEM equ LVN_ODFINDITEMW
+	ELSE
+		LVN_ODFINDITEM equ LVN_ODFINDITEMA
+	ENDIF	
+ENDIF
+
+IFNDEF NM_CUSTOMDRAW
+	NM_CUSTOMDRAW equ NM_FIRST - 12
+ENDIF
+
+IFNDEF NM_HOVER
+	NM_HOVER equ NM_FIRST - 13
+ENDIF
+
+IFNDEF NM_RELEASEDCAPTURE
+	NM_RELEASEDCAPTURE equ NM_FIRST - 16
+ENDIF

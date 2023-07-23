@@ -1,0 +1,269 @@
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;
+;;                     Common Control Macro Library
+;;
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;
+;;      cocomac.mac for 32 bit MASM v1.3 (April 2003)
+;;
+;;      This file contains the essential macros for Common Control Macro Library
+;;
+;;      This include file is written and maintained by Four-F (four-f@mail.ru)
+;;
+;;::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$IsMem MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00000010y
+		;; Is a memory variable or has a relocatable data label
+		EXITM <-1>              ;; True
+	ELSE
+		EXITM <0>               ;; False
+	ENDIF
+ENDM
+
+$IsImm MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00000100y
+		;; Is an immediate value
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsReg MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 00010000y
+		;; Is a register value
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsStack MACRO Operand:REQ
+	IF (OPATTR (Operand)) AND 01000000y
+		;; relative to SS
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+$IsAddr MACRO Operand:REQ
+local a
+	a = 0
+
+	IF @SizeStr(<Operand>) GT 5		
+		IFIDNI <addr >, @SubStr(<Operand>, 1 , 5)
+			a = 1
+		ENDIF
+	ENDIF
+
+	IF a
+        EXITM <-1>
+    ELSE
+        EXITM <0>
+    ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$MAKEDWORD MACRO a:REQ, b:REQ
+
+;; v 1.0
+;; Four-F 2001
+;; four-f@mail.ru
+
+;; a | (b << 16)
+local wreg, line
+
+	IF $IsImm(a) AND $IsImm(b)
+		EXITM <(a AND 0FFFFh) OR (b SHL 16)>
+	ELSE
+		IF $IsImm(a)
+			IF (TYPE b) EQ 4				; ? DWORD
+				IFDIFI <b>, <eax>
+					mov eax, b
+				ENDIF
+				shl eax, 16
+				IF a
+					or eax, (a AND 0FFFFh)
+				ENDIF
+			ELSEIF (TYPE b) EQ 2			; ? WORD
+				IFDIFI <b>, <ax>
+					mov ax, b
+				ENDIF
+				shl eax, 16
+				IF a
+					or eax, (a AND 0FFFFh)
+				ENDIF
+			ELSE
+				line TEXTEQU %@Line
+				% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+				.ERR
+			ENDIF
+		ELSEIF $IsReg(a)
+			IF $IsImm(b)
+				IF (TYPE a) EQ 4				; ? DWORD
+					IFDIFI <a>, <eax>
+						mov eax, a
+					ENDIF
+					and eax, 0FFFFh
+					IF b
+						or eax, (b SHL 16)
+					ENDIF
+				ELSEIF (TYPE a) EQ 2			; ? WORD
+					IFDIFI <a>, <ax>
+						mov ax, a
+					ENDIF
+					and eax, 0FFFFh
+					IF b
+						or eax, (b SHL 16)
+					ENDIF
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &a not supported. Should be WORD or DWORD.;;'
+					.ERR
+				ENDIF
+			ELSEIF $IsReg(b)
+				IFIDNI <a>, <eax>
+					line TEXTEQU %@Line
+					.ERR
+					% ECHO @FileCur(line) : ERROR! Register value overwritten by $MAKEDWORD macro.
+				ENDIF
+				IF (TYPE b) EQ 4				; ? DWORD
+					IFDIFI <b>, <eax>
+						mov eax, b
+					ENDIF
+				ELSEIF (TYPE b) EQ 2			; ? WORD
+					IFDIFI <b>, <ax>
+						mov ax, b
+					ENDIF
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+					.ERR
+				ENDIF
+				shl eax, 16
+				IF (TYPE a) EQ 4				; ? DWORD
+					wreg SUBSTR <a>, 2
+					or ax, wreg
+				ELSEIF (TYPE a) EQ 2				; ? WORD
+					or ax, a
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &a not supported. Should be WORD or DWORD.;;'
+					.ERR				
+				ENDIF
+			ELSE
+				IF (TYPE a) EQ 4				; ? DWORD
+					IFDIFI <a>, <eax>
+						IF (TYPE b) EQ 4				; ? DWORD
+							mov eax, b
+						ELSEIF (TYPE b) EQ 2				; ? WORD
+							mov ax, b
+						ELSE
+							line TEXTEQU %@Line
+							% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+							.ERR						
+						ENDIF
+						shl eax, 16
+						wreg SUBSTR <a>, 2
+						or ax, wreg
+					ELSE
+						mov eax, a
+						shl eax, 16
+						or ax, word ptr b
+						ror eax, 16
+					ENDIF
+				ELSEIF (TYPE a) EQ 2			; ? WORD
+					IFDIFI <a>, <ax>
+						IF (TYPE b) EQ 4				; ? DWORD
+							mov eax, b
+						ELSEIF (TYPE b) EQ 2				; ? WORD
+							mov ax, b
+						ELSE
+							line TEXTEQU %@Line
+							% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+							.ERR						
+						ENDIF
+						shl eax, 16
+						;wreg SUBSTR <a>, 2
+						;or ax, wreg
+						or ax, a
+					ELSE
+						mov ax, a
+						shl eax, 16
+						or ax, word ptr b
+						ror eax, 16
+					ENDIF				
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &a not supported. Should be WORD or DWORD.;;'
+					.ERR
+				ENDIF
+
+			ENDIF
+		ELSE
+			IF $IsImm(b)
+				IF (TYPE a) EQ 4			; ? DWORD
+					mov eax, a
+				ELSEIF (TYPE a) EQ 2		; ? WORD
+					mov ax, a
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &a not supported. Should be WORD or DWORD.;;'
+					.ERR				
+				ENDIF
+				and eax, 0FFFFh
+				IF b
+					or eax, (b SHL 16)
+				ENDIF
+			ELSEIF $IsReg(b)
+				IF (TYPE b) EQ 4			; ? DWORD
+					IFDIFI <b>, <eax>
+						mov eax, b
+					ENDIF
+				ELSEIF (TYPE b) EQ 2		; ? WORD
+					IFDIFI <b>, <ax>
+						mov ax, b
+					ENDIF
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+					.ERR				
+				ENDIF
+				shl eax, 16
+				or ax, word ptr a
+			ELSE
+				IF (TYPE b) EQ 4			; ? DWORD
+					mov eax, b
+				ELSEIF (TYPE b) EQ 2		; ? WORD
+					mov ax, b
+				ELSE
+					line TEXTEQU %@Line
+					% ECHO @FileCur(line) : $MAKEDWORD macro ERROR! Type of &b not supported. Should be WORD or DWORD.;;'
+					.ERR				
+				ENDIF
+				shl eax, 16
+				or ax, word ptr a
+			ENDIF
+		ENDIF
+	ENDIF
+	EXITM <eax>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$INDEXTOSTATEIMAGEMASK MACRO i:REQ
+	IF $IsImm(i)
+		EXITM <(i SHL 12)>
+	ELSE
+		IFDIFI <i>, <eax>
+			mov eax, i
+		ENDIF
+		shl eax, 12
+		EXITM <eax>
+	ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
